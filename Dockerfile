@@ -16,4 +16,4 @@ RUN if [ -f poetry.lock ]; then rm poetry.lock; fi
 RUN if [ -f pyproject.toml ]; then poetry install --no-root; fi
 
 # uvicornのサーバーを立ち上げる
-ENTRYPOINT ["poetry", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+ENTRYPOINT poetry run uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8080} --reload
