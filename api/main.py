@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import openai
 import google.generativeai as genai
 
 import os
 from pathlib import Path
+
 
 def read_secret(file_name):
     file_path = Path('.secret') / file_name
@@ -18,11 +19,9 @@ try:
 except:
     bert = None
 
-
-
 class TextRequest(BaseModel):
-    text: str
-    model: str  # モデルを指定するためのフィールドを追加
+    text: str = Field(..., title="Text to process", description="Text to process", example="おっけありがとう")
+    model: str = Field(..., title="Model to use", description="Model to use", example="google")
 
 class TextResponse(BaseModel):
     processed_text: str
@@ -46,6 +45,7 @@ async def process_text(request: TextRequest):
             return {"processed_text": response.choices[0].text.strip()}
         elif request.model == 'google':
             api_key = os.getenv('GOOGLE_API_KEY')
+            print(api_key)
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-pro')
             if bert is not None:    
