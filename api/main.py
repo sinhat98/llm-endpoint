@@ -3,7 +3,6 @@ from pydantic import BaseModel
 import openai
 import google.generativeai as genai
 
-from algo.bert import get_bert_model
 import os
 from pathlib import Path
 
@@ -14,9 +13,13 @@ def read_secret(file_name):
 
 app = FastAPI()
 try:
+    from algo.bert import get_bert_model
     bert = get_bert_model()
 except:
     bert = None
+
+
+
 class TextRequest(BaseModel):
     text: str
     model: str  # モデルを指定するためのフィールドを追加
@@ -53,7 +56,10 @@ async def process_text(request: TextRequest):
                 sentiment_label = 1
                 sentiment_score = 1.
             if sentiment_label == 1:
-                response = model.generate_content(request.text)
+                prompt = '''次の文章は自然言語処理モデルによって有害と判断されました。以下の文章を修正してください。
+                {}
+                '''
+                response = model.generate_content(prompt.format(request.text))
                 output_text = response.text
             else:
                 output_text = request.text
