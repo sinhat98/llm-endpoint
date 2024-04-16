@@ -56,7 +56,9 @@ async def process_text(request: TextRequest):
                 sentiment_label = 1
                 sentiment_score = 1.
             if sentiment_label == 1:
-                prompt = '''次の文章は自然言語処理モデルによって有害と判断されました。以下の文章を修正してください。
+                prompt = '''次の文章はあなたとは異なる自然言語処理モデルによって有害と判断されました。
+                以下の文章が有害であると判断される理由を教えてください。
+                また、この文章を修正してください。
                 {}
                 '''
                 response = model.generate_content(prompt.format(request.text))
