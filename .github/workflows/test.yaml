@@ -13,6 +13,7 @@ jobs:
 
     env:
       APP_NAME: llm-endpoint
+      PORT: 8080
 
     # 実行するステップ
     steps:
@@ -28,7 +29,7 @@ jobs:
 
     - name: Build and Run Lint with flake8 using Docker Compose
       run: |
-        docker-compose run  flake8 --version
+        docker-compose run ${{ env.APP_NAME }} flake8 --version
         docker-compose run ${{ env.APP_NAME }} isort --version
         docker-compose run ${{ env.APP_NAME }} flake8 --count --show-source --statistics
       # Docker Composeを使用してコードのLintを実行
