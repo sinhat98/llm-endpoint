@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-import openai
-import google.generativeai as genai
-
 import os
 from pathlib import Path
+
+import google.generativeai as genai
+import openai
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 
 def read_secret(file_name):
@@ -12,21 +12,25 @@ def read_secret(file_name):
     with open(file_path, "r") as file:
         return file.read().strip()
 
+
 app = FastAPI()
 try:
     from algo.bert import get_bert_model
     bert = get_bert_model()
-except:
+except BaseException:
     bert = None
+
 
 class TextRequest(BaseModel):
     text: str = Field(..., title="Text to process", description="Text to process", example="おっけありがとう")
     model: str = Field(..., title="Model to use", description="Model to use", example="google")
 
+
 class TextResponse(BaseModel):
     processed_text: str
     sentiment_label: int
     sentiment_score: float
+
 
 @app.post("/process-text/", response_model=TextResponse)
 async def process_text(request: TextRequest):
@@ -37,10 +41,10 @@ async def process_text(request: TextRequest):
             openai.api_key = api_key
             # OpenAI APIを叩く
             response = openai.Completion.create(
-                engine="gpt-3.5", # または他のモデル
+                engine="gpt-3.5",  # または他のモデル
                 prompt=request.text,
                 temperature=0.7,
-                max_tokens=100
+                max_tokens=100,
             )
             return {"processed_text": response.choices[0].text.strip()}
         elif request.model == 'google':
@@ -48,7 +52,7 @@ async def process_text(request: TextRequest):
             print(api_key)
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-pro')
-            if bert is not None:    
+            if bert is not None:
                 sentiment_output = bert(request.text)
                 sentiment_label = sentiment_output.label
                 sentiment_score = sentiment_output.score
@@ -56,13 +60,17 @@ async def process_text(request: TextRequest):
                 sentiment_label = 1
                 sentiment_score = 1.
             if sentiment_label == 1:
-                prompt = '''次の文章は自然言語処理モデルによって有害と判断されました。以下の文章を修正してください。
+                prompt = '''次の文章はあなたとは異なる自然言語処理モデルによって有害と判断されました。
+                以下の文章が有害であると判断される理由を教えてください。
+                また、この文章を修正してください。
                 {}
                 '''
                 response = model.generate_content(prompt.format(request.text))
                 output_text = response.text
             else:
                 output_text = request.text
-            return {"processed_text": output_text, "sentiment_label": sentiment_label, "sentiment_score": sentiment_score}
+            return {"processed_text": output_text,
+                    "sentiment_label": sentiment_label,
+                    "sentiment_score": sentiment_score}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

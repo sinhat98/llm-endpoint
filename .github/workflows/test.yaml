@@ -1,0 +1,39 @@
+name: Docker Python Tests
+
+# ワークフローのトリガー条件
+on:
+  push:
+  pull_request:
+
+# ジョブの定義
+jobs:
+  build-and-test:
+    # 実行環境
+    runs-on: ubuntu-latest
+
+    env:
+      APP_NAME: llm-endpoint
+      PORT: 8080
+
+    # 実行するステップ
+    steps:
+    - uses: actions/checkout@v2
+      # リポジトリのチェックアウト
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v1
+      # Dockerのセットアップ
+    
+    - name: Build Docker image
+      run: docker build . -t ${{ env.APP_NAME }}:latest
+
+    - name: Build and Run Lint with flake8 using Docker Compose
+      run: |
+        docker run --entrypoint "/bin/sh" ${{ env.APP_NAME }}:latest -c "flake8 --version"
+        docker run --entrypoint "/bin/sh" ${{ env.APP_NAME }}:latest -c "isort --version"
+        docker run --entrypoint "/bin/sh" ${{ env.APP_NAME }}:latest -c "flake8 --count --show-source --statistics"
+      # Docker Composeを使用してコードのLintを実行
+
+    - name: Run tests using Docker Compose
+      run: |
+        docker run --entrypoint "/bin/sh" ${{ env.APP_NAME }}:latest -c "python -m unittest tests.algo.bert"

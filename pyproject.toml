@@ -17,6 +17,12 @@ ipadic = "*"
 transformers = "*"
 ctranslate2 = "*"
 
+[tool.poetry.dev-dependencies]
+autopep8 = "*"
+flake8 = "*"
+flake8-commas = "*"
+flake8-isort = "*"
+flake8-quotes = "*"
 
 [build-system]
 requires = ["poetry-core"]
